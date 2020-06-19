@@ -67,6 +67,7 @@ setMethod("ldb_add",
 #' @description Removes a ldb from a ldbm. This function and its methods
 #' DO NOT delete any instance of ldb and its data from the file system. 
 #' This purly stops ldbm from tracking the ldb.
+#' @export
 setGeneric("ldb_rm", function(ldbm, ldb) standardGeneric("ldb_rm"))
 #' @describeIn ldb_rm Method that allows the user to refer to ldb via a symbol. It
 #' should be noted that this method only checks if ldb@@name is in the names
@@ -101,9 +102,14 @@ setMethod("ldb_rm",
             return(ldbm)
           })
 
-
-setGeneric("ldb_colsummary", function(object) standardGeneric("ldb_colsummary"))
-setMethod("ldb_colsummary",
+#' @name colsummary
+#' @title Column Summary
+#' @description returns a data frame that summarises information on each
+#' column such as name, column type, and if it is a key column 
+#' @export
+setGeneric("colsummary", function(object) standardGeneric("colsummary"))
+#' @describeIn colsummary Method to be used on ldb.
+setMethod("colsummary",
           signature(object = "ldb"),
           function(object){
             n <- length(object@col_names)
@@ -112,11 +118,12 @@ setMethod("ldb_colsummary",
                        col_types = object@col_types,
                        key = object@col_names%in%object@key)
           })
-setMethod("ldb_colsummary",
+#' @describeIn colsummary applies ldb method on each ldb in ldbm.
+setMethod("colsummary",
           signature(object = "ldbm"),
           function(object){
             suppressWarnings({
-              dplyr::bind_rows(lapply(object@ldb, ldb_colsummary))
+              dplyr::bind_rows(lapply(object@ldb, colsummary))
             })
           })
 

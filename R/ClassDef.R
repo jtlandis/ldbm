@@ -102,7 +102,7 @@ setMethod("initialize", "ldbm",
             }
             if(!is.null(.Object@ldb)&&all(unlist(lapply(.Object@ldb, is)))){
               .Object@managing <- length(.Object@ldb)
-              .Object@colsummary <- ldb_colsummary(.Object)
+              .Object@colsummary <- colsummary(.Object)
             }
             if(is.na(.Object@path)){
               .Object@path <- get_ldb_path()
@@ -111,14 +111,12 @@ setMethod("initialize", "ldbm",
           })
 
 setGeneric("updateClass", function(object) standardGeneric("updateClass"))
-#' @name updateClass
-#' @description Used to update slot information in ldbm
 setMethod("updateClass",
           signature(object = "ldbm"),
           function(object){
             if(!is.null(object@ldb)){
               object@managing <- length(object@ldb)
-              object@colsummary <- ldb_colsummary(object)
+              object@colsummary <- colsummary(object)
             } else {
               object@managing <- 0
               object@colsummary <- data.frame(ldb.names = character(),
