@@ -203,7 +203,16 @@ setMethod("ldb_read",
               stop(paste0("Cannot open: ", ldb))
             }
           })
+#' @name ldb_write
+#' @title write ldb
+#' @description writes to file location of ldb@@path. Currently does not support 
+#' what file type is written. Current table written to disk is tab separated values (.tsv).
+#' @param data data to be written
+#' @param append controls if data should be appended. Default set to TRUE
+#' @export
 setGeneric("ldb_write", function(ldb, data, append = TRUE, ...) standardGeneric("ldb_write"))
+#' @describeIn ldb_write ldb argument is expect as class ldb. Writes directly to ldb@@path.
+#' This method is done without ldbm, which overlooks any dependencies.
 setMethod("ldb_write",
           signature(ldb  = "ldb",data = "ANY", append = "ANY"),
           function(ldb, data, append){
@@ -214,6 +223,8 @@ setMethod("ldb_write",
             data <- data[,ldb@col_names]
             vroom::vroom_write(x = data, path = path, append = append)
           })
+#' @describeIn ldb_write ldb argument expect as class ldbm, and ldb.name may be supplied as
+#' a character that matches the names of the ldbm.
 setMethod("ldb_write",
           signature(ldb  = "ldbm",data = "ANY", append = "ANY"),
           function(ldb, ldb.name, data, append){
@@ -222,6 +233,8 @@ setMethod("ldb_write",
               ldb <- ldb@ldb[[ldb.name]]
             } else if("ldb" %in% class(ldb.name)){
               ldb <- ldb.name
+            } else{
+              stop("ldb.name is neither a ldb or a name of an ldb managed by ldbm")
             }
             path <- paste0(ldb@path,ldb@name,".tsv")
             if(!all(ldb@col_names %in%colnames(data))){
