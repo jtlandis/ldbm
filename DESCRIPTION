@@ -1,0 +1,18 @@
+Package: ldbm
+Type: Package
+Title: Local Database Manager
+Version: 0.1.0
+Authors@R: c(person("Justin T.","Landis", rol = c("aut", "cre"), email = "<jtlandis314@gmail.com>"))
+Maintainer: Justin Landis <jtlandis314@gmail.com>
+Description: Simple package to track data that is stored locally. The project aims to hold information about each data set that one would normally need to classify in a formal database, such as column names and data types, key columns, data dimensions, size and location on disk. The package was orginally made with the intentions to eventually make a local shiny database gui - but having mutliple users read and write to the same physical file may prove difficult.
+License: GPL (>= 2)
+Imports:
+  dplyr,
+  stringr,
+  tidyr,
+  vroom
+RoxygenNote: 7.1.0
+VignetteBuilder: knitr
+URL: 
+BugReports:
+RdMacros: 
