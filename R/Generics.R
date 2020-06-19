@@ -1,184 +1,184 @@
 
 
-setGeneric("db_add", function(dbm, db) standardGeneric("db_add"))
-setMethod("db_add",
-          signature(dbm = "dbm", db = "db"),
-          function(dbm,db){
-            nam <- names(dbm@db)
-            if(!db@name %in% names(dbm@db)){
-              if(is.na(db@path)){ #if no directory is set with file Make one
-                newdbpath <- paste0(dbm@path,db@name,"/")
-                if(!dir.exists(newdbpath)){
-                  dir.create(newdbpath)
+setGeneric("ldb_add", function(ldbm, ldb) standardGeneric("ldb_add"))
+setMethod("ldb_add",
+          signature(ldbm = "ldbm", ldb = "ldb"),
+          function(ldbm,ldb){
+            nam <- names(ldbm@ldb)
+            if(!ldb@name %in% names(ldbm@ldb)){
+              if(is.na(ldb@path)){ #if no directory is set with file Make one
+                newldbpath <- paste0(ldbm@path,ldb@name,"/")
+                if(!dir.exists(newldbpath)){
+                  dir.create(newldbpath)
                 }
-                db@path <- newdbpath
+                ldb@path <- newldbpath
               }
-              dbm@db <- c(dbm@db, db)
-              names(dbm@db) <- c(nam, db@name)
-              dbm <- updateClass(dbm)
-              saveRDS(db,file = paste0(dbm@path,db@name,".rds"))
+              ldbm@ldb <- c(ldbm@ldb, ldb)
+              names(ldbm@ldb) <- c(nam, ldb@name)
+              ldbm <- updateClass(ldbm)
+              saveRDS(ldb,file = paste0(ldbm@path,ldb@name,".rds"))
             } else {
-              warning(paste0(db@name," already exists in dbm"))
+              warning(paste0(ldb@name," already exists in ldbm"))
             }
-            return(dbm)
+            return(ldbm)
 })
-setMethod("db_add",
-          signature(dbm = "dbm", db = "character"),
-          function(dbm,db){
-            path <- paste0(dbm@path,db,".rds")
+setMethod("ldb_add",
+          signature(ldbm = "ldbm", ldb = "character"),
+          function(ldbm,ldb){
+            path <- paste0(ldbm@path,ldb,".rds")
             if(file.exists(path)){
-              if(!db %in% names(dbm@db)){
-                db <- readRDS(path)
-                if(is.na(db@path)){ #if no directory is set with file Make one
-                  newdbpath <- paste0(dbm@path,db@name,"/")
-                  if(!dir.exists(newdbpath)){
-                    dir.create(newdbpath)
+              if(!ldb %in% names(ldbm@ldb)){
+                ldb <- readRDS(path)
+                if(is.na(ldb@path)){ #if no directory is set with file Make one
+                  newldbpath <- paste0(ldbm@path,ldb@name,"/")
+                  if(!dir.exists(newldbpath)){
+                    dir.create(newldbpath)
                   }
-                  db@path <- newdbpath
+                  ldb@path <- newldbpath
                 }
-                nam <- names(dbm@db)
-                dbm@db <- c(dbm@db, db)
-                names(dbm@db) <- c(nam, db@name)
-                dbm <- updateClass(dbm)
+                nam <- names(ldbm@ldb)
+                ldbm@ldb <- c(ldbm@ldb, ldb)
+                names(ldbm@ldb) <- c(nam, ldb@name)
+                ldbm <- updateClass(ldbm)
               } else {
-                warning(paste0(db," already exists in dbm"))
+                warning(paste0(ldb," already exists in ldbm"))
               }
-              return(dbm)
+              return(ldbm)
             } else {
-              stop(paste0("could not find db pointer: ",path))
+              stop(paste0("could not find ldb pointer: ",path))
             }
           })
 
-setGeneric("db_rm", function(dbm, db) standardGeneric("db_rm"))
-setMethod("db_rm",
-          signature(dbm = "dbm", db = "db"),
-          function(dbm,db){
-            nam <- db@name
-            if(nam %in% names(dbm@db)){
-              saveRDS(db,file = paste0(dbm@path,db@name,".rds"))
-              dbm@db <- dbm@db[!names(dbm@db)%in%nam]
-              dbm <- updateClass(dbm)
+setGeneric("ldb_rm", function(ldbm, ldb) standardGeneric("ldb_rm"))
+setMethod("ldb_rm",
+          signature(ldbm = "ldbm", ldb = "ldb"),
+          function(ldbm,ldb){
+            nam <- ldb@name
+            if(nam %in% names(ldbm@ldb)){
+              saveRDS(ldb,file = paste0(ldbm@path,ldb@name,".rds"))
+              ldbm@ldb <- ldbm@ldb[!names(ldbm@ldb)%in%nam]
+              ldbm <- updateClass(ldbm)
             } else {
-              warning(paste0("db \"", nam,"\" is not present in dbm"))
+              warning(paste0("ldb \"", nam,"\" is not present in ldbm"))
             }
-            return(dbm)
+            return(ldbm)
           })
-setMethod("db_rm",
-          signature(dbm = "dbm", db = "character"),
-          function(dbm,db){
-            if(db %in% names(dbm@db)){
-              .db <- dbm@db[[db]]
-              saveRDS(.db,file = paste0(dbm@path,.db@name,".rds"))
-              dbm@db <- dbm@db[!names(dbm@db)%in%db]
-              dbm <- updateClass(dbm)
+setMethod("ldb_rm",
+          signature(ldbm = "ldbm", ldb = "character"),
+          function(ldbm,ldb){
+            if(ldb %in% names(ldbm@ldb)){
+              .ldb <- ldbm@ldb[[ldb]]
+              saveRDS(.ldb,file = paste0(ldbm@path,.ldb@name,".rds"))
+              ldbm@ldb <- ldbm@ldb[!names(ldbm@ldb)%in%ldb]
+              ldbm <- updateClass(ldbm)
             } else {
-              warning(paste0("db \"",db,"\" is not present in dbm"))
+              warning(paste0("ldb \"",ldb,"\" is not present in ldbm"))
             }
-            return(dbm)
+            return(ldbm)
           })
 
 
-setGeneric("db_colsummary", function(object) standardGeneric("db_colsummary"))
-setMethod("db_colsummary",
-          signature(object = "db"),
+setGeneric("ldb_colsummary", function(object) standardGeneric("ldb_colsummary"))
+setMethod("ldb_colsummary",
+          signature(object = "ldb"),
           function(object){
             n <- length(object@col_names)
-            data.frame(db.names = rep(object@name, n),
+            data.frame(ldb.names = rep(object@name, n),
                        col_names = object@col_names,
                        col_types = object@col_types,
                        key = object@col_names%in%object@key)
           })
-setMethod("db_colsummary",
-          signature(object = "dbm"),
+setMethod("ldb_colsummary",
+          signature(object = "ldbm"),
           function(object){
             suppressWarnings({
-              dplyr::bind_rows(lapply(object@db, db_colsummary))
+              dplyr::bind_rows(lapply(object@ldb, ldb_colsummary))
             })
           })
 
 
-setGeneric("db_read", function(db, ...) standardGeneric("db_read"))
-setMethod("db_read",
-          signature(db = "db"),
-          function(db){
-            path <- paste0(db@path,db@name,".tsv")
+setGeneric("ldb_read", function(ldb, ...) standardGeneric("ldb_read"))
+setMethod("ldb_read",
+          signature(ldb = "ldb"),
+          function(ldb){
+            path <- paste0(ldb@path,ldb@name,".tsv")
             if(!file.exists(path)){
-              tib <- db@col_names %>%
+              tib <- ldb@col_names %>%
                 rlang::rep_named(list(character())) %>%
                 tibble::as_tibble()
               
             } else {
               tib <- vroom(path, 
-                           col_types = paste0(db@col_types,collapse = ""),
+                           col_types = paste0(ldb@col_types,collapse = ""),
                            col_names = TRUE)
             }
             return(tib)
           })
-setMethod("db_read",
-          signature(db = "dbm"),
-          function(db, db.name){
-            dbm <- db
-            if("db" %in% class(db.name)){
-              db <- db.name
-            } else if("character" %in%class(db.name)){
-              if(db.name%in%names(db@db)){
-                db <- db@db[[db.name]]
+setMethod("ldb_read",
+          signature(ldb = "ldbm"),
+          function(ldb, ldb.name){
+            ldbm <- ldb
+            if("ldb" %in% class(ldb.name)){
+              ldb <- ldb.name
+            } else if("character" %in%class(ldb.name)){
+              if(ldb.name%in%names(ldb@ldb)){
+                ldb <- ldb@ldb[[ldb.name]]
               } else {
-                stop(paste0(db.name, " is not managed by ", dbm@name))
+                stop(paste0(ldb.name, " is not managed by ", ldbm@name))
               }
             }
-            path <- paste0(db@path,db@name,".tsv")
+            path <- paste0(ldb@path,ldb@name,".tsv")
             if(!file.exists(path)){
-              tib <- db@col_names %>%
+              tib <- ldb@col_names %>%
                 rlang::rep_named(list(character())) %>%
                 tibble::as_tibble()
               
             } else {
               tib <- vroom(path, 
-                           col_types = paste0(db@col_types,collapse = ""),
+                           col_types = paste0(ldb@col_types,collapse = ""),
                            col_names = TRUE)
             }
             return(tib)
           })
-setGeneric("db_write", function(db, data, append = TRUE, ...) standardGeneric("db_write"))
-setMethod("db_write",
-          signature(db  = "db",data = "ANY", append = "ANY"),
-          function(db, data, append){
-            path <- paste0(db@path,db@name,".tsv")
-            if(!all(db@col_names %in%colnames(data))){
-              stop("data must contain all col_names of db")
+setGeneric("ldb_write", function(ldb, data, append = TRUE, ...) standardGeneric("ldb_write"))
+setMethod("ldb_write",
+          signature(ldb  = "ldb",data = "ANY", append = "ANY"),
+          function(ldb, data, append){
+            path <- paste0(ldb@path,ldb@name,".tsv")
+            if(!all(ldb@col_names %in%colnames(data))){
+              stop("data must contain all col_names of ldb")
             }
-            data <- data[,db@col_names]
+            data <- data[,ldb@col_names]
             vroom::vroom_write(x = data, path = path, append = append)
           })
-setMethod("db_write",
-          signature(db  = "dbm",data = "ANY", append = "ANY"),
-          function(db, db.name, data, append){
-            dbm <- db
-            if("character" %in%class(db.name)&&db.name%in%names(db@db)){
-              db <- db@db[[db.name]]
-            } else if("db" %in% class(db.name)){
-              db <- db.name
+setMethod("ldb_write",
+          signature(ldb  = "ldbm",data = "ANY", append = "ANY"),
+          function(ldb, ldb.name, data, append){
+            ldbm <- ldb
+            if("character" %in%class(ldb.name)&&ldb.name%in%names(ldb@ldb)){
+              ldb <- ldb@ldb[[ldb.name]]
+            } else if("ldb" %in% class(ldb.name)){
+              ldb <- ldb.name
             }
-            path <- paste0(db@path,db@name,".tsv")
-            if(!all(db@col_names %in%colnames(data))){
-              stop("data must contain all col_names of db")
+            path <- paste0(ldb@path,ldb@name,".tsv")
+            if(!all(ldb@col_names %in%colnames(data))){
+              stop("data must contain all col_names of ldb")
             }
-            data <- data[,db@col_names]
+            data <- data[,ldb@col_names]
             #before writing --- check each dependency if new data (keys) are represented
-            #if not -- append changes to dependent db inserting NAs to other columns.
+            #if not -- append changes to dependent ldb inserting NAs to other columns.
             
-            if(length(db@dependency)>0){
-              for(dep in names(db@dependency)){
-                depen <- db_read(dbm, db.name = dep) 
+            if(length(ldb@dependency)>0){
+              for(dep in names(ldb@dependency)){
+                depen <- ldb_read(ldbm, ldb.name = dep) 
                 depen <- depen %>%
-                  select(db@dependency[[dep]]) %>% distinct()
-                .tmp <- data %>% select(names(db@dependency[[dep]])) %>% distinct()
+                  select(ldb@dependency[[dep]]) %>% distinct()
+                .tmp <- data %>% select(names(ldb@dependency[[dep]])) %>% distinct()
                 which_match <- mapply(all_within, x = depen, y = .tmp)
                 if(!all(which_match)){
-                  .tmpdepen <- full_join(db_read(dbm, db.name = dep),
-                                         .tmp, by = invertnames(db@dependency[[dep]]))
-                  db_write(dbm@db[[dep]], .tmpdepen, append = F)
+                  .tmpdepen <- full_join(ldb_read(ldbm, ldb.name = dep),
+                                         .tmp, by = invertnames(ldb@dependency[[dep]]))
+                  ldb_write(ldbm@ldb[[dep]], .tmpdepen, append = F)
                 }
               }
               
@@ -187,20 +187,20 @@ setMethod("db_write",
           })
 
 
-setGeneric("db_setdependency", function(dbm, db, dependency, links) standardGeneric("db_setdependency"))
-setMethod("db_setdependency",
-          signature(dbm = "dbm", db = "db", dependency = "db", links = "character"),
-          function(dbm, db, dependency, links){
-            current.list <- dbm@db[[db@name]]@dependency
+setGeneric("ldb_setdependency", function(ldbm, ldb, dependency, links) standardGeneric("ldb_setdependency"))
+setMethod("ldb_setdependency",
+          signature(ldbm = "ldbm", ldb = "ldb", dependency = "ldb", links = "character"),
+          function(ldbm, ldb, dependency, links){
+            current.list <- ldbm@ldb[[ldb@name]]@dependency
             if(length(current.list)!=0&&
                dependency@name %in% names(current.list)){
-              warning(paste0(dependency@name, " is already a dependency of ", db@name,". Overwriting."))
-              dbm@db[[db@name]]@dependency[[dependency@name]] <- links
+              warning(paste0(dependency@name, " is already a dependency of ", ldb@name,". Overwriting."))
+              ldbm@ldb[[ldb@name]]@dependency[[dependency@name]] <- links
             } else {
-              dbm@db[[db@name]]@dependency <- c(current.list, list(links))
-              names(dbm@db[[db@name]]@dependency) <- c(names(dbm@db[[db@name]]@dependency), dependency@name)
+              ldbm@ldb[[ldb@name]]@dependency <- c(current.list, list(links))
+              names(ldbm@ldb[[ldb@name]]@dependency) <- c(names(ldbm@ldb[[ldb@name]]@dependency), dependency@name)
             }
-            return(dbm)
+            return(ldbm)
           })
 
 
