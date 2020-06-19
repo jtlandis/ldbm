@@ -21,7 +21,7 @@ all_within <- function(x,y){
 #' @name invertnames
 #' @title Invert names
 #' @description Inverts the values and names of a named vector.
-#' @example 
+#' @examples 
 #' \dontrun{
 #' vec <- c("A"="a","B"="b")
 #' invertnames(vec)
@@ -52,7 +52,7 @@ df_match <- function(x, y) {
 #' Intended to be used to efficently update entries into
 #' the master ldb if y is a subset. Only pulls in rows of
 #' y whose keys match the keys of x.
-#' @example 
+#' @examples 
 #' x <- data.frame(key1 = 1:4, key2 = letters[1:4], value1 = rnorm(4), value2 = runif(4))
 #' y <- x[c(2,4),]
 #' y$value1 <- -10

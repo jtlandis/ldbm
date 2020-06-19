@@ -1,6 +1,14 @@
 
-
+#' @name ldb_add
+#' @title ldb_add
+#' @description Adds a ldb object to an existing ldbm. ldb must added with the constructor function,
+#' or exist within ldbm's path as an .rds file.
+#' @export
 setGeneric("ldb_add", function(ldbm, ldb) standardGeneric("ldb_add"))
+#' @describeIn ldb_add Method that allows the user to refer to the symbol reference of ldb
+#' ldb is then saved in ldbm's path under the name of ldb \(not the symbol\). If a ldb already
+#' exits in ldbm's path with the same name, ldb_add will output a warning message and return
+#' ldbm unchanged.
 setMethod("ldb_add",
           signature(ldbm = "ldbm", ldb = "ldb"),
           function(ldbm,ldb){
@@ -22,6 +30,12 @@ setMethod("ldb_add",
             }
             return(ldbm)
 })
+#' @describeIn ldb_add Method that allows the user to refer to ldb by a character name. Same as
+#' the previous method, if a ldb already exits in ldbm's path with the same name, ldb_add will 
+#' output a warning message and return ldbm unchanged. However, If ldb's rds does yet not exist
+#' ldbm's path, then this method will fail. This method is purely conviences if a ldb is removed
+#' unintentionally and it may be added quickley without the symbol reference. This also prevents
+#' the user from unintentionally adding an empty ldb where they are expecting an predefined ldb.
 setMethod("ldb_add",
           signature(ldbm = "ldbm", ldb = "character"),
           function(ldbm,ldb){
@@ -48,8 +62,16 @@ setMethod("ldb_add",
               stop(paste0("could not find ldb pointer: ",path))
             }
           })
-
+#' @name ldb_rm 
+#' @title ldb_rm
+#' @description Removes a ldb from a ldbm. This function and its methods
+#' DO NOT delete any instance of ldb and its data from the file system. 
+#' This purly stops ldbm from tracking the ldb.
 setGeneric("ldb_rm", function(ldbm, ldb) standardGeneric("ldb_rm"))
+#' @describeIn ldb_rm Method that allows the user to refer to ldb via a symbol. It
+#' should be noted that this method only checks if ldb@@name is in the names
+#' of ldbm@@ldb. If so, then it is removed. This could lead to errors if a 
+#' user is not wise.
 setMethod("ldb_rm",
           signature(ldbm = "ldbm", ldb = "ldb"),
           function(ldbm,ldb){
@@ -63,6 +85,8 @@ setMethod("ldb_rm",
             }
             return(ldbm)
           })
+#' @describeIn ldb_rm Method that allows user to refer to ldb via its character name.
+#' This is more explicit as the user may check the names of ldbm easily.
 setMethod("ldb_rm",
           signature(ldbm = "ldbm", ldb = "character"),
           function(ldbm,ldb){
