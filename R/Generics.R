@@ -244,7 +244,7 @@ setMethod("ldb_write",
             #before writing --- check each dependency if new data (keys) are represented
             #if not -- append changes to dependent ldb inserting NAs to other columns.
             
-            if(length(ldb@dependency)>0){
+            if(length(ldb@dependency)>0){ #NEED TO UNDERSTAND THIS IFSTATEMENT
               for(dep in names(ldb@dependency)){
                 depen <- ldb_read(ldbm, ldb.name = dep) 
                 depen <- depen %>%
