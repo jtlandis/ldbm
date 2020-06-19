@@ -3,6 +3,7 @@
 #' @title ldb_add
 #' @description Adds a ldb object to an existing ldbm. ldb must added with the constructor function,
 #' or exist within ldbm's path as an .rds file.
+#' @return ldbm
 #' @export
 setGeneric("ldb_add", function(ldbm, ldb) standardGeneric("ldb_add"))
 #' @describeIn ldb_add Method that allows the user to refer to the symbol reference of ldb
@@ -67,6 +68,7 @@ setMethod("ldb_add",
 #' @description Removes a ldb from a ldbm. This function and its methods
 #' DO NOT delete any instance of ldb and its data from the file system. 
 #' This purly stops ldbm from tracking the ldb.
+#' @return ldbm
 #' @export
 setGeneric("ldb_rm", function(ldbm, ldb) standardGeneric("ldb_rm"))
 #' @describeIn ldb_rm Method that allows the user to refer to ldb via a symbol. It
@@ -106,6 +108,7 @@ setMethod("ldb_rm",
 #' @title Column Summary
 #' @description returns a data frame that summarises information on each
 #' column such as name, column type, and if it is a key column 
+#' @return data.frame
 #' @export
 setGeneric("colsummary", function(object) standardGeneric("colsummary"))
 #' @describeIn colsummary Method to be used on ldb.
@@ -127,8 +130,16 @@ setMethod("colsummary",
             })
           })
 
-
+#' @name ldb_read
+#' @title read ldb
+#' @description Function to read ldb from disk. Files are read in with
+#' the vroom package. ldb@@col_types controls how vroom attempts to 
+#' coerce the data types.
+#' @return tibble
+#' @export
 setGeneric("ldb_read", function(ldb, ...) standardGeneric("ldb_read"))
+#' @describeIn ldb_read expects an ldb object and will attempt to read
+#' the file set in ldb@@path
 setMethod("ldb_read",
           signature(ldb = "ldb"),
           function(ldb){
@@ -145,6 +156,13 @@ setMethod("ldb_read",
             }
             return(tib)
           })
+#' @describeIn ldb_read expects ldbm as first argument, second argument may either
+#' be a character value of ldb or an ldb object. If the character vector is not in
+#' the path of ldbm, then it fails. If the ldb object's name is not in the path of
+#' ldbm, then the returned tibble will be empty. This method implies the user is expecting
+#' the ldb to be in the ldbm's path. While ldbs do not need to be in the ldbm path and 
+#' may be stored elsewhere, these ldbs removed with ldb_rm may be difficult to find if
+#' the user forgets. 
 setMethod("ldb_read",
           signature(ldb = "ldbm"),
           function(ldb, ldb.name){
@@ -170,6 +188,20 @@ setMethod("ldb_read",
                            col_names = TRUE)
             }
             return(tib)
+          })
+#' @describeIn ldb_read Method that allows the user to specify the
+#' file location of the .rds ldb file on the file system. After reading
+#' the .rds file, ldb method of ldb_read is then called.
+setMethod("ldb_read",
+          signature(ldb= "character"),
+          function(ldb){
+            if(file.exists(ldb)){
+              ldb <- readRDS(ldb)
+              res <- ldb_read(ldb)
+              return(res)
+            } else {
+              stop(paste0("Cannot open: ", ldb))
+            }
           })
 setGeneric("ldb_write", function(ldb, data, append = TRUE, ...) standardGeneric("ldb_write"))
 setMethod("ldb_write",
