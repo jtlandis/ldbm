@@ -245,10 +245,12 @@ setMethod("ldb_write",
             #if not -- append changes to dependent ldb inserting NAs to other columns.
             
             if(length(ldb@dependency)>0){ #NEED TO UNDERSTAND THIS IFSTATEMENT
+              #browser()
               for(dep in names(ldb@dependency)){
-                depen <- ldb_read(ldbm, ldb.name = dep) 
+                depen <- ldb_read(ldbm, ldb.name = dep)
+                #if(nrow(dep))
                 depen <- depen %>%
-                  select(ldb@dependency[[dep]]) %>% distinct()
+                  select(all_of(ldb@dependency[[dep]])) %>% distinct()
                 .tmp <- data %>% select(names(ldb@dependency[[dep]])) %>% distinct()
                 which_match <- mapply(all_within, x = depen, y = .tmp)
                 if(!all(which_match)){
@@ -337,4 +339,25 @@ setMethod("getDepTree",
           signature(object = "ldbm"),
           function(object){
             object@dependency_tree
+          })
+
+#' @name genNetGraph
+#' @title Generate Network Graph
+#' @importFrom igraph graph
+#' @importFrom tidyr gather
+#' @export
+setGeneric("genNetGraph", function(object) standardGeneric("genNetGraph"))
+setMethod("genNetGraph",
+          signature(object = "ldbm"),
+          function(object){
+            getDepTree(object) %>%
+              mutate(id=1:n())%>%
+              gather(key=ldb,value=ignore,-id) %>%
+              filter(!is.na(ignore)) %>%
+              arrange(id) %>%
+              group_by(id) %>%
+              summarise(combi = list(as.vector(combn(ldb,2)))) %>% pull(combi) %>%
+              unlist() %>% matrix(nrow=2) %>% t() %>%
+              {.[!duplicated(.),]} %>%
+              t() %>% as.vector() %>% c(., rev(.)) %>% graph()
           })
