@@ -262,7 +262,16 @@ setMethod("ldb_write",
             vroom::vroom_write(x = data, path = path, append = append)
           })
 
-
+#' @name ldb_setdependency
+#' @title Set Dependency
+#' @description Sets a one way dependency between
+#' two ldbs within the same ldbm. Objects must be within
+#' ldbm to work. 'dependency' will become a dependent of
+#' 'ldb' and the name of 'dependency' and its key links will be 
+#' stored in the dependency slot of the 'ldb' arugment.
+#' If a ldb ever updates with new information, then tables dependent
+#' on it should pull in new key information as well.
+#' @export
 setGeneric("ldb_setdependency", function(ldbm, ldb, dependency, links) standardGeneric("ldb_setdependency"))
 setMethod("ldb_setdependency",
           signature(ldbm = "ldbm", ldb = "ldb", dependency = "ldb", links = "character"),
@@ -273,11 +282,59 @@ setMethod("ldb_setdependency",
               warning(paste0(dependency@name, " is already a dependency of ", ldb@name,". Overwriting."))
               ldbm@ldb[[ldb@name]]@dependency[[dependency@name]] <- links
             } else {
+              nms <- names(ldbm@ldb[[ldb@name]]@dependency)
               ldbm@ldb[[ldb@name]]@dependency <- c(current.list, list(links))
-              names(ldbm@ldb[[ldb@name]]@dependency) <- c(names(ldbm@ldb[[ldb@name]]@dependency), dependency@name)
+              names(ldbm@ldb[[ldb@name]]@dependency) <- c(nms, dependency@name)
             }
+            ldbm <- updateClass(ldbm)
             return(ldbm)
           })
 
+#' @name genDependencyTree
+#' @title Generate Dependency Tree
+#' @description Generates a dependency tree that
+#' shows how the ldbs of a ldbm may be joined.
+#' 
+#' @importFrom tidyselect any_of
+setGeneric("genDependencyTree", function(object) standardGeneric("genDependencyTree"))
+setMethod("genDependencyTree",
+          signature(object = "ldbm"),
+          function(object){
+            L <- unlist(lapply(object@ldb,function(x){length(x@dependency)>0}))
+            if(sum(L)==0){
+              return(data.frame(key = character()))
+            }
+            final <- c()
+            L <- object@ldb[L]
+            for(j in 1:length(L)){
+              nms <- names(L[[j]]@dependency)
+              .df <- c()
+              for(i in 1:length(L[[j]]@dependency)){
+                df <- data.frame(x = names(L[[j]]@dependency[[i]]), y = unname(L[[j]]@dependency[[i]]), stringsAsFactors = F)
+                colnames(df) <- c(L[[j]]@name,nms[i])
+                .df <- bind_rows(.df, df)
+              }
+              if(j>1){
+                final <- full_join(final, .df, by = common_by(x = final, y = .df))
+                
+              } else {
+                final <- .df
+              }
+            }
+            final <- final %>%
+              select(any_of(names(object@ldb))) %>%
+              distinct()
+            return(final)
+          })
 
-
+#' @name getDepTree
+#' @title Get Dependency Tree
+#' @description Grab a dependency tree that
+#' shows how the ldbs of a ldbm may be joined.
+#' @export
+setGeneric("getDepTree", function(object) standardGeneric("getDepTree"))
+setMethod("getDepTree",
+          signature(object = "ldbm"),
+          function(object){
+            object@dependency_tree
+          })

@@ -66,6 +66,31 @@ setMethod("initialize", "ldb",
             validObject(.Object)
             .Object
           })
+setMethod("show","ldb",
+          function(object){
+            # cat("Column Summary:\n")
+            # print(colsummary(object))
+            # cat("\n")
+            # if(is.na(object@path)){
+            #   cat(paste0("'",object@name,"' path not set\n"))
+            # } else {
+            #   cat(paste0("'",object@name,"' path set to:\n", object@path,"\n"))
+            # }
+            # cat("\n")
+            if(length(object@dependency)==0){
+              cat(paste0("'",object@name,"' has no dependencies\n"))
+            } else {
+              cat(paste0("'",object@name,"' has the following dependencies:\n"))
+              nms <- names(object@dependency)
+              .df <- c()
+              for(i in 1:length(object@dependency)){
+                df <- data.frame(x = names(object@dependency[[i]]), y = unname(object@dependency[[i]]))
+                colnames(df) <- c(object@name,nms[i])
+                .df <- bind_rows(.df, df)
+              }
+              print(.df)
+            }
+          })
 
 
 #' @name ldbm
@@ -78,13 +103,14 @@ setMethod("initialize", "ldb",
 #' @slot path Scalar Character of the physical path to the data
 #' @slot colsummary dataframe summarising the columns of each database
 #' @slot keysummary dataframe summarising the keys of each database 
+#' @importFrom stringr str_detect
 #' @export Ldbm
 Ldbm <- setClass("ldbm", representation(name = "character",
                                ldb = "list",
                                managing = "numeric",
                                path = "character",
                                colsummary = "data.frame",
-                               keysummary = "data.frame"),
+                               dependency_tree = "data.frame"),
          prototype(name = "ldbmanager_prototype",
                    ldb = list(),
                    managing = 0,
@@ -93,7 +119,7 @@ Ldbm <- setClass("ldbm", representation(name = "character",
                                            col_names = character(),
                                            col_types = character(),
                                            key = logical()),
-                   keysummary = data.frame(key = character())))
+                   dependency_tree = data.frame(key = character())))
 setMethod("initialize", "ldbm",
           function(.Object, ...){
             .Object <- callNextMethod(.Object, ...)
@@ -106,8 +132,28 @@ setMethod("initialize", "ldbm",
             }
             if(is.na(.Object@path)){
               .Object@path <- get_ldb_path()
+            }else if(!dir.exists(.Object@path)){
+              dir.create(.Object@path)
+            }
+            if(str_detect(.Object@path,"/$", negate = T)){
+              .Object@path <- paste0(.Object@path,"/")
             }
             .Object
+          })
+setMethod("show", "ldbm",
+          function(object){
+            cat(paste0(object@name," is managing ", object@managing, " data tables\n"))
+            cat("Column Summary:\n")
+            print(colsummary(object))
+            cat("\n")
+            if(is.na(object@path)){
+              cat(paste0("'",object@name,"' path not set\n"))
+            } else {
+              cat(paste0("'",object@name,"' path set to:\n", object@path,"\n"))
+            }
+            cat("\n")
+            cat("Showing dependency tree\n")
+            print(object@dependency_tree)
           })
 
 setGeneric("updateClass", function(object) standardGeneric("updateClass"))
@@ -117,12 +163,15 @@ setMethod("updateClass",
             if(!is.null(object@ldb)){
               object@managing <- length(object@ldb)
               object@colsummary <- colsummary(object)
+              object@dependency_tree <- genDependencyTree(object)
             } else {
               object@managing <- 0
               object@colsummary <- data.frame(ldb.names = character(),
                                               col_names = character(),
                                               col_types = character())
+              object@dependency_tree <- data.frame(key = character())
             }
+            
             return(object)
           })
 
