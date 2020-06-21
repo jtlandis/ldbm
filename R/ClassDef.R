@@ -30,30 +30,29 @@ Ldb <- setClass("ldb", representation(name = "character",
                    key = NA_character_,
                    path = NA_character_,
                    dependency = list()),
-         validity = function(ldb){
+         validity = function(object){
            errors <- character()
-           if(is.na(ldb@name)){
+           if(is.na(object@name)){
              msg <- "name should not be NA"
              errors <- c(errors, msg)
            }
-           if(!is.na(ldb@col_names)&&
-              !is.na(ldb@col_types)&&
-              (length(ldb@col_names)!=length(ldb@col_types))){
+           if(!is.na(object@col_names)&&
+              !is.na(object@col_types)&&
+              (length(object@col_names)!=length(object@col_types))){
              errors <- c(errors, "col_names and col_types must be the same length")
            }
            
-           if(!is.na(ldb@col_names)&&!is.na(ldb@key)&&!all(ldb@key%in%ldb@col_names)){
+           if(!is.na(object@col_names)&&!is.na(object@key)&&!all(object@key%in%object@col_names)){
              errors <- c(errors, "All key(s) must be within col_names")
            }
            
-           if(!is.na(ldb@path)&&!dir.exists(ldb@path)){
-             errors <- c(errors, paste0(ldb@name," directory does not exist: ", ldb@path))
+           if(!is.na(object@path)&&!dir.exists(object@path)){
+             errors <- c(errors, paste0(object@name," directory does not exist: ", object@path))
            }
            
            if (length(errors) == 0) TRUE else errors
         
          })
-
 setMethod("initialize", "ldb",
           function(.Object, ...){
             .Object <- callNextMethod(.Object, ...)
@@ -68,15 +67,15 @@ setMethod("initialize", "ldb",
           })
 setMethod("show","ldb",
           function(object){
-            # cat("Column Summary:\n")
-            # print(colsummary(object))
-            # cat("\n")
-            # if(is.na(object@path)){
-            #   cat(paste0("'",object@name,"' path not set\n"))
-            # } else {
-            #   cat(paste0("'",object@name,"' path set to:\n", object@path,"\n"))
-            # }
-            # cat("\n")
+            cat("Column Summary:\n")
+            print(colsummary(object))
+            cat("\n")
+            if(is.na(object@path)){
+              cat(paste0("'",object@name,"' path not set\n"))
+            } else {
+              cat(paste0("'",object@name,"' path set to:\n", object@path,"\n"))
+            }
+            cat("\n")
             if(length(object@dependency)==0){
               cat(paste0("'",object@name,"' has no dependencies\n"))
             } else {
@@ -155,15 +154,20 @@ setMethod("show", "ldbm",
             cat("Showing dependency tree\n")
             print(object@dependency_tree)
           })
-
+#' @name updateClass
+#' @title Update Class
+#' @description function used to check and update values
 setGeneric("updateClass", function(object) standardGeneric("updateClass"))
+#' @describeIn updateClass Function to update ldbm. Checks number of databases it is watching,
+#' recalls colsummary, and updates dependencies.
 setMethod("updateClass",
           signature(object = "ldbm"),
           function(object){
+            #browser()
             if(!is.null(object@ldb)){
               object@managing <- length(object@ldb)
               object@colsummary <- colsummary(object)
-              object@dependency_tree <- genDependencyTree(object)
+              #object@dependency_tree <- genDependencyTree(object)
             } else {
               object@managing <- 0
               object@colsummary <- data.frame(ldb.names = character(),
@@ -178,7 +182,6 @@ setMethod("updateClass",
 
 
 
-#ldbList <- manager@ldb
 
 
 
