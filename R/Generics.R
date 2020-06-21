@@ -320,31 +320,29 @@ setGeneric("genDependencyTree", function(object) standardGeneric("genDependencyT
 setMethod("genDependencyTree",
           signature(object = "ldbm"),
           function(object){
-            L <- unlist(lapply(object@ldb,function(x){length(x@dependency)>0}))
-            if(sum(L)==0){
-              return(data.frame(key = character()))
-            }
-            final <- c()
-            L <- object@ldb[L]
-            for(j in 1:length(L)){
-              nms <- names(L[[j]]@dependency)
-              .df <- c()
-              for(i in 1:length(L[[j]]@dependency)){
-                df <- data.frame(x = names(L[[j]]@dependency[[i]]), y = unname(L[[j]]@dependency[[i]]), stringsAsFactors = F)
-                colnames(df) <- c(L[[j]]@name,nms[i])
-                .df <- bind_rows(.df, df)
+            ldbList <- object@ldb
+            df <- c()
+            for(L in ldbList){
+              if(length(L@dependency)>0){
+                .df <- tibble(Left = L@name, Right = names(L@dependency),
+                              left.name = lapply(L@dependency,names), right.name = lapply(L@dependency, unname)) %>%
+                  {suppressWarnings({unnest(.,right.name, left.name)})} %>%
+                  mutate(connect = "left")
+                if(!is.null(df)&&nrow(df)>0){
+                  df_semi <- semi_join(df, .df, by = c("Left"="Right","Right"="Left","left.name"="right.name","right.name"="left.name"))
+                  if(!is.null(df_semi)&&nrow(df_semi)>0){
+                    df <- df_semi %>%
+                      mutate(connect = "bidirection") %>%
+                      update_left(x = df, y = ., by = c("Left","Right","left.name","right.name"))
+                    .df <- anti_join(.df, df, by = c("Left"="Right","Right"="Left","left.name"="right.name","right.name"="left.name"))
+                  }
+                }
+              } else{
+                .df <- c()
               }
-              if(j>1){
-                final <- full_join(final, .df, by = common_by(x = final, y = .df))
-                
-              } else {
-                final <- .df
-              }
+              df <- bind_rows(df, .df)
             }
-            final <- final %>%
-              select(any_of(names(object@ldb))) %>%
-              distinct()
-            return(final)
+            return(df)
           })
 
 #' @name getDepTree

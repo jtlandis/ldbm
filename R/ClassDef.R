@@ -163,11 +163,10 @@ setGeneric("updateClass", function(object) standardGeneric("updateClass"))
 setMethod("updateClass",
           signature(object = "ldbm"),
           function(object){
-            #browser()
             if(!is.null(object@ldb)){
               object@managing <- length(object@ldb)
               object@colsummary <- colsummary(object)
-              #object@dependency_tree <- genDependencyTree(object)
+              object@dependency_tree <- genDependencyTree(object)
             } else {
               object@managing <- 0
               object@colsummary <- data.frame(ldb.names = character(),
