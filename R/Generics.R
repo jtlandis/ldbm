@@ -274,20 +274,38 @@ setMethod("ldb_write",
 #' If a ldb ever updates with new information, then tables dependent
 #' on it should pull in new key information as well.
 #' @export
-setGeneric("ldb_setdependency", function(ldbm, ldb, dependency, links) standardGeneric("ldb_setdependency"))
+setGeneric("ldb_setdependency", function(ldbm, ldb, dep, links, join.direction = "bidirection") standardGeneric("ldb_setdependency"))
 setMethod("ldb_setdependency",
-          signature(ldbm = "ldbm", ldb = "ldb", dependency = "ldb", links = "character"),
-          function(ldbm, ldb, dependency, links){
-            current.list <- ldbm@ldb[[ldb@name]]@dependency
-            if(length(current.list)!=0&&
-               dependency@name %in% names(current.list)){
-              warning(paste0(dependency@name, " is already a dependency of ", ldb@name,". Overwriting."))
-              ldbm@ldb[[ldb@name]]@dependency[[dependency@name]] <- links
-            } else {
-              nms <- names(ldbm@ldb[[ldb@name]]@dependency)
-              ldbm@ldb[[ldb@name]]@dependency <- c(current.list, list(links))
-              names(ldbm@ldb[[ldb@name]]@dependency) <- c(nms, dependency@name)
+          signature(ldbm = "ldbm", ldb = "ldb", dep = "ldb", links = "character"),
+          function(ldbm, ldb, dep, links, join.direction = "bidirection"){
+            join.direction <- match.arg(arg = tolower(join.direction), choices = c("right","left","bidirection"))
+            current.list.L <- ldbm@ldb[[ldb@name]]@dependency
+            current.list.R <- ldbm@ldb[[dep@name]]@dependency
+            
+            if(join.direction%in%c("left","bidirection")){
+              if(length(current.list.L)!=0&&
+                 dep@name %in% names(current.list.L)){
+                warning(paste0(dep@name, " is already a dependency of ", ldb@name,". Overwriting."))
+                ldbm@ldb[[ldb@name]]@dependency[[dep@name]] <- links
+              } else {
+                nms <- names(ldbm@ldb[[ldb@name]]@dependency)
+                ldbm@ldb[[ldb@name]]@dependency <- c(current.list.L, list(links))
+                names(ldbm@ldb[[ldb@name]]@dependency) <- c(nms, dep@name)
+              }
+            } 
+            if(join.direction%in%c("right","bidirection")){
+              if(length(current.list.R)!=0&&
+                 ldb@name %in% names(current.list.R)){
+                warning(paste0(ldb@name, " is already a dependency of ", dep@name,". Overwriting."))
+                ldbm@ldb[[dep@name]]@dependency[[ldb@name]] <- invertnames(links)
+              } else {
+                links <- invertnames(links)
+                nms <- names(ldbm@ldb[[dep@name]]@dependency)
+                ldbm@ldb[[dep@name]]@dependency <- c(current.list.R, list(links))
+                names(ldbm@ldb[[dep@name]]@dependency) <- c(nms, ldb@name)
+              }
             }
+            
             ldbm <- updateClass(ldbm)
             return(ldbm)
           })
