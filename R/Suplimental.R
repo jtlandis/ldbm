@@ -16,14 +16,17 @@ gen_random <- function(n = 6){
 #' invertnames(vec)
 #' }
 invertnames <- function(x){
+  
   if(is.null(names(x))&&is.character(x)){
     return(x)
+  } else if(is.character(x)){
+    y <- names(x)
+    names(y) <- x
+    return(y)
   } else {
-    stop("x should be a character vector")
+    stop("x should be a character")
   }
-  y <- names(x)
-  names(y) <- x
-  return(y)
+  
 }
 
 
@@ -81,15 +84,15 @@ update_left <- function(x,y,by=NULL, x.col.only = T){
   return(x)
 }
 
-# #' @name all_within
-# #' @title All Within
-# #' @description wrapper to test all unique values of x and y are the same
-# all_within <- function(x,y){
-#   x <- unique(x)
-#   y <- unique(y)
-#   res <- all(x%in%y)&&all(y%in%x)
-#   return(res)
-# }
+#' @name all_within
+#' @title All Within
+#' @description wrapper to test all unique values of x and y are the same
+all_within <- function(x,y){
+  x <- unique(x)
+  y <- unique(y)
+  res <- all(x%in%y)&&all(y%in%x)
+  return(res)
+}
 
 # df_match <- function(x, y) {
 #   if(!all_within(colnames(x),colnames(y))){
