@@ -366,10 +366,12 @@ setGeneric("genNetGraph", function(object) standardGeneric("genNetGraph"))
 setMethod("genNetGraph",
           signature(object = "ldbm"),
           function(object){
-            getDepTree(manager) %>%
+            getDepTree(object) %>%
               rowwise() %>%
               mutate(edgemap = list(graph_edges(Left, Right, connect))) %>%
-              pull(edgemap) %>% unlist%>% graph()
+              pull(edgemap) %>% unlist() %>% matrix(nrow=2) %>% t() %>%
+              {.[!duplicated(.),]} %>%
+              t() %>% as.vector() %>% graph()
           })
 
 
